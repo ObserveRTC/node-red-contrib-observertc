@@ -1,5 +1,3 @@
-const {encode, decode} = require("base64-arraybuffer");
-
 class ReportDemuxer {
     constructor() {
     
