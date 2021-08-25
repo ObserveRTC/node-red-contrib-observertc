@@ -1,0 +1,166 @@
+// const avro = require('avro-js');
+const avro = require('avsc');
+const fs = require('fs');
+const Long = require('long');
+
+const {encode, decode} = require("base64-arraybuffer");
+
+const longType = avro.types.LongType.__with({
+  fromBuffer: (buf) => {
+    return new Long(buf.readInt32LE(), buf.readInt32LE(4));
+  },
+  toBuffer: (n) => {
+    const buf = Buffer.alloc(8);
+    buf.writeInt32LE(n.getLowBits());
+    buf.writeInt32LE(n.getHighBits(), 4);
+    return buf;
+  },
+  fromJSON: Long.fromValue,
+  toJSON: (n) => +n,
+  isValid: Long.isLong,
+  compare: (n1, n2) => n1.compare(n2)
+});
+
+class AvroReportDeserializer {
+    constructor() {
+        this._report = this._makeDeser("report");
+        this._observerEvent = this._makeDeser("observer-event-report");
+        this._callEvent = this._makeDeser("call-event-report");
+        this._callMeta = this._makeDeser("call-meta-report");
+        this._clientDataChannel = this._makeDeser("client-data-channel-report");
+        this._clientExtension = this._makeDeser("client-extension-report");
+        this._clientMeta = this._makeDeser("client-meta-report");
+        this._clientTransport = this._makeDeser("client-transport-report");
+        this._inboundAudio = this._makeDeser("inbound-audio-track-report");
+        this._inboundVideo = this._makeDeser("inbound-video-track-report");
+        this._outboundAudio = this._makeDeser("outbound-audio-track-report");
+        this._outboundVideo = this._makeDeser("outbound-video-track-report");
+        this._sfuEvent = this._makeDeser("sfu-event-report");
+        this._sfuMeta = this._makeDeser("sfu-meta-report");
+        this._sfuRtpSink = this._makeDeser("sfu-rtp-sink-report");
+        this._sfuRtpSource = this._makeDeser("sfu-rtp-source-report");
+        this._sfuSctpStream = this._makeDeser("sfu-sctp-stream-report");
+        this._sfuTransport = this._makeDeser("sfu-transport-report");
+    }
+
+    process(report) {
+        const topic = report.topic;
+        const payload = report.payload;
+        const value = payload.value;
+        // Avro serialized raw value contain a "few" character for "magic"
+        // "few" mean, like I realized from the following sources:
+        // https://github.com/bencebalogh/avro-schema-registry/blob/8be9c6c90dff58c8c4ebd7eea62962a7e82d2d8e/registry.js#L98
+        // https://github.com/mtth/avsc/issues/292
+        // https://github.com/mtth/avsc/issues/59
+        // https://github.com/mtth/avsc/issues/13
+        //
+        // and "magic" is because I gathered some nice sentences to say while I was struggling with it.
+        // 
+        // const slicedValue = value.slice(2);
+        const slicedValue = value;
+        const buffer = Buffer.from(slicedValue).slice(2);
+        const output = [null, null];
+        if (topic.endsWith("OBSERVER_EVENT")) {
+            output[0] = this._observerEvent(buffer);
+        } else if (topic.endsWith("CALL_EVENT")) {
+            output[0] = this._callEvent(buffer);
+        } else if (topic.endsWith("CALL_META_DATA")) {
+            output[0] = this._callMeta(buffer);
+        } else if (topic.endsWith("CLIENT_EXTENSION_DATA")) {
+            output[0] = this._clientExtension(buffer);
+        } else if (topic.endsWith("PEER_CONNECTION_TRANSPORT")) {
+            output[0] = this._clientTransport(buffer);
+        } else if (topic.endsWith("PEER_CONNECTION_DATA_CHANNEL")) {
+            output[0] = this._clientDataChannel(buffer);
+        } else if (topic.endsWith("INBOUND_AUDIO_TRACK")) {
+            output[0] = this._inboundAudio(buffer);
+        } else if (topic.endsWith("INBOUND_VIDEO_TRACK")) {
+            output[0] = this._inboundVideo(buffer);
+        } else if (topic.endsWith("OUTBOUND_AUDIO_TRACK")) {
+            output[0] = this._outboundAudio(buffer);
+        } else if (topic.endsWith("OUTBOUND_VIDEO_TRACK")) {
+            output[0] = this._outboundVideo(buffer);
+        } else if (topic.endsWith("MEDIA_TRACK")) {
+            console.warn("MEDIA_TRACK Not implemented yet")
+        } else if (topic.endsWith("SFU_EVENT")) {
+            output[0] = this._sfuEvent(buffer);
+        } else if (topic.endsWith("SFU_META_DATA")) {
+            output[0] = this._sfuMeta(buffer);
+        } else if (topic.endsWith("SFU_TRANSPORT")) {
+            output[0] = this._sfuTransport(buffer);
+        } else if (topic.endsWith("SFU_RTP_SOURCE_STREAM")) {
+            output[0] = this._sfuRtpSource(buffer);
+        } else if (topic.endsWith("SFU_RTP_SINK_STREAM")) {
+            output[0] = this._sfuRtpSink(buffer);
+        } else if (topic.endsWith("SFU_SCTP_STREAM")) {
+            output[0] = this._sfuSctpStream(buffer);
+        } else {
+            console.log("unrecognized topic", topic);
+        }
+        // switch (topic) {
+        //     case "CALL_EVENT":
+                
+        //         break;
+        //     case "reports":
+        //         // console.log(report);
+        //         // const m = JSON.parse(report.payload.value);
+        //         // const p = decode(m.payload);
+        //         // const b = Buffer.from(p)
+        //         // console.log(p);
+        //         // // const b = Buffer.from(p.slice(5));
+        //         // output[1] = this._outboundAudioReport(b);
+        //         break;
+        //     default:
+        //         console.warn("unrecognized topic", topic);
+        //         break;
+        // }
+        
+        console.log(report);
+        return output;
+
+        // const message = this._deserializer(buffer);
+        // // console.log("something" + message);
+        // // const valid = this._schemaParser.isValid(report);
+        // console.log(message);
+        // return report;
+    }
+
+    _makeDeser(schemaName) {
+        const path = __dirname + '/schemas/' + schemaName + '.avsc';
+        // const path = __dirname + '/schemas/report.avsc';
+        const text = fs.readFileSync(path);
+        const schema = JSON.parse(text);
+        const type = avro.Type.forSchema(schema, {registry: {'long': longType}});
+        // console.log(schema, type);
+        return buffer => {
+            try {
+                const payload = type.fromBuffer(buffer);
+                return {
+                    payload,
+                }
+            } catch (err) {
+                console.warn(schemaName, err);
+                return null;
+            }
+            // console.log(buffer);
+            
+            // return null;
+        }
+    }
+}
+
+module.exports = function(RED) {
+    function ReportDemuxerBuilder(config) {
+        console.log("config", config);
+        RED.nodes.createNode(this, config);
+        const node = this;
+        const demuxer = new ReportDemuxer();
+        // const flowContext = node.context().flow;
+        console.log(node.context().flow);
+        node.on('input', (msg) => {
+            const result = demuxer.process(msg);
+            node.send(result);
+        });
+    }
+    RED.nodes.registerType("avro-report-deserializer", ReportDemuxerBuilder);
+}

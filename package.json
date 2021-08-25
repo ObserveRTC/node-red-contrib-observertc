@@ -1,0 +1,40 @@
+{
+  "name": "node-red-contrib-observertc",
+  "version": "0.0.2",
+  "description": "ObserveRTC contribution through node-red project for analyzing WebRTC Reports",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha \"tests/**/*.test.js\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ObserveRTC/node-red-contrib.git"
+  },
+  "keywords": [
+    "WebRTC"
+  ],
+  "author": "ObserveRTC",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/ObserveRTC/node-red-contrib/issues"
+  },
+  "homepage": "https://github.com/ObserveRTC/node-red-contrib#readme",
+  "dependencies": {
+    "avro-js": "^1.10.2",
+    "avsc": "^5.7.3",
+    "base64-arraybuffer": "^1.0.1"
+  },
+  "devDependencies": {
+    "mocha": "^8.4.0",
+    "node-red": "^1.3.5",
+    "node-red-node-test-helper": "^0.2.7"
+  },
+  "directories": {
+    "assets:": "./schemas"
+  },
+  "node-red": {
+    "nodes": {
+      "report-demuxer": "report-demuxer.js"
+    }
+  }
+}
