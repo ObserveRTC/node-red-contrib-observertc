@@ -1,0 +1,31 @@
+<script type="text/javascript">
+    const NAME = "report-groupcounter";
+    RED.nodes.registerType(NAME,{
+        category: 'observertc',
+        color: '#FF9A00',
+        defaults: {
+            emitTimeout: {value:1000},
+            windowTimeout: {value: 60000},
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "./observertc.png",
+        label: function() {
+            return this.name || NAME;
+        },
+        inputLabels: "sliding window counter for a certain property",
+    });
+</script>
+
+<script type="text/html" data-template-name="report-groupcounter">
+    <div class="form-row">
+        <label for="node-input-emitTimeout"><i class="fa fa-tag"></i> Emit timeout [ms]</label>
+        <input type="text" id="node-input-emitTimeout" placeholder="emitTimeout">
+        <label for="node-input-windowTimeout"><i class="fa fa-tag"></i> Window timeout [ms]</label>
+        <input type="text" id="node-input-windowTimeout" placeholder="windowTimeout">
+    </div>
+</script>
+
+<script type="text/html" data-help-name="report-groupcounter">
+    <p> Count the number of occurrences in a sliding window and emits the count periodically </p>
+</script>

@@ -1,3 +1,5 @@
+const { decode } = require("base64-arraybuffer");
+
 class ReportDemuxer {
     constructor() {
     
@@ -20,7 +22,7 @@ class ReportDemuxer {
         try {
             const buffer = decode(payload);
             const decodedString = String.fromCharCode.apply(null, new Uint8Array(buffer));
-            let demuxedReport = {
+            demuxedReport = {
                 payload: JSON.parse(decodedString),
             };
         } catch (err) {
@@ -106,15 +108,29 @@ class ReportDemuxer {
     }
 }
 
+const makeTransformer = reportSource => {
+    if (reportSource === "kafka") {
+        return msg => {
+            const payload = msg.payload ? msg.payload.value : null;
+            return {
+                payload: payload ? JSON.parse(payload) : null,
+            };
+        }
+    }
+    console.warn("Unknown report source", reportSource);
+    return msg => msg;
+}
+
 module.exports = function(RED) {
     function ReportDemuxerBuilder(config) {
         RED.nodes.createNode(this, config);
-        console.log(config);
         const node = this;
         const demuxer = new ReportDemuxer();
+        const transform = makeTransformer(config.reportSource || "kafka");
         // const flowContext = node.context().flow;
         node.on('input', (msg) => {
-            const result = demuxer.process(msg);
+            const message = transform(msg);
+            const result = demuxer.process(message);
             if (result) {
                 node.send(result);
             }

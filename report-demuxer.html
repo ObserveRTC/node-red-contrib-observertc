@@ -4,7 +4,8 @@
         category: 'observertc',
         color: '#FF9A00',
         defaults: {
-            name: {value:""}
+            name: {value:""},
+            reportSource: {value: ""}
         },
         inputs: 1,
         outputs: 17,
@@ -37,11 +38,15 @@
 
 <script type="text/html" data-template-name="report-demuxer">
     <div class="form-row">
+        <label for="node-input-reportSource"><i class="fa fa-tag"></i> Source</label>
+        <select id="node-input-reportSource" placeholder="Source">
+            <option>Kafka</option>
+        </select><br />
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
 </script>
 
 <script type="text/html" data-help-name="report-demuxer">
-    <p> A node deserialize an avro encoded ObserveRTC Reports </p>
+    <p> A node Demultiplexes Json encoded Reports </p>
 </script>

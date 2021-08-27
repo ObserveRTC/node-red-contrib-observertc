@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-observertc",
-  "version": "0.0.7",
+  "version": "0.0.12",
   "description": "ObserveRTC contribution through node-red project for analyzing WebRTC Reports",
   "main": "index.js",
   "scripts": {
@@ -36,7 +36,8 @@
   },
   "node-red": {
     "nodes": {
-      "report-demuxer": "report-demuxer.js"
+      "report-demuxer": "report-demuxer.js",
+      "report-groupcounter": "report-groupcounter.js"
     }
   }
 }
