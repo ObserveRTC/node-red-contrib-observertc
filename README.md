@@ -13,6 +13,8 @@ Usage
 ---
 WebRTC reports are read from a buffer / database from which reports are further processed. 
 
+![](screenshot.png?raw=true)
+
 License
 -------
 

@@ -20,7 +20,9 @@ class ReportDemuxer {
         try {
             const buffer = decode(payload);
             const decodedString = String.fromCharCode.apply(null, new Uint8Array(buffer));
-            let demuxedReport = JSON.parse(decodedString);
+            let demuxedReport = {
+                payload: JSON.parse(decodedString),
+            };
         } catch (err) {
             console.warn(err);
             return null;
@@ -100,6 +102,7 @@ class ReportDemuxer {
                 output[16] = demuxedReport;
                 break;
         }
+        return output;
     }
 }
 

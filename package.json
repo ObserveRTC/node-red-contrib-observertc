@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-observertc",
-  "version": "0.0.2",
+  "version": "0.0.7",
   "description": "ObserveRTC contribution through node-red project for analyzing WebRTC Reports",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,9 @@
     "url": "git+https://github.com/ObserveRTC/node-red-contrib.git"
   },
   "keywords": [
-    "WebRTC"
+    "WebRTC",
+    "node-red",
+    "observertc"
   ],
   "author": "ObserveRTC",
   "license": "Apache-2.0",
