@@ -1,4 +1,3 @@
-# Build your own Docker image
 Docker Image for ObserveRTC Node-RED usage
 ---
 
